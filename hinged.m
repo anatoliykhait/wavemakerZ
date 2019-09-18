@@ -37,13 +37,13 @@ zerovalue = 1e-100;
 %     |      /
 %     v    |/
 % ---------o    Location of the hinge
-h = 0.16;
-lh = 0.4;
+h = 0.6;
+lh = 1e5;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  Definition of the target wave train at x=0
-T0 = 1.5;
-ka = 0.054;
+T0 = 2.8;
+ka = 0.06;
 w0 = 2*pi/T0;
 Omega = w0/10;  % w0 +- Omega
 
@@ -261,6 +261,16 @@ end
 
 %%
 
+% %{
+fileName = 'displ_second_order.dat';
+fileID = fopen(fileName,'w');
+fprintf(fileID, '# time displacement\n');
+for j = 1:length(ta)
+    fprintf(fileID, '%15.10e %15.10e\n', ta(j), X(j));
+end
+fclose(fileID);
+% %}
+
 %{
 % Output 2nd order spectrum
 % X = amp * cos(phase + omega * t)
@@ -335,5 +345,5 @@ hold on;
 plot(ta, X, '-r', 'Parent', sub6, 'LineWidth', 1);
 plot(ta, X_rct, '.k', 'Parent', sub6, 'LineWidth', 1);
 hold off;
-axis([-inf inf -0.04 0.04]);
+axis([-inf inf -0.1 0.1]);
 legend({'X' 'Xrct'});
