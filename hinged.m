@@ -37,11 +37,16 @@ zerovalue = 1e-100;
 %     |      /
 %     v    |/
 % ---------o    Location of the hinge
+%{
 h = 0.6;
+lh = 1e5;
+%}
+h = 0.74;
 lh = 1e5;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  Definition of the target wave train at x=0
+%{
 T0 = 2.8;
 ka = 0.06;
 w0 = 2*pi/T0;
@@ -65,7 +70,28 @@ while ti < Tenv
     ti = ti + dt;
     j  = j + 1;
 end
+%}
+T0 = 3.0;
+ka = 0.06;
+w0 = 2*pi/T0;
 
+syms kk;
+disp_rel = w0^2 == grav * kk * tanh(kk * h);
+k0 = vpasolve(disp_rel, kk, [0 inf]);
+k0 = double(k0);
+
+a0 = ka / k0;
+
+j = 1;
+ti = 0;
+dt = T0/128;
+while ti < T0*10
+    ta(j) = ti;
+    Ea(j) = a0 * cos(w0*ti-pi/2);
+    
+    ti = ti + dt;
+    j  = j + 1;
+end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ETA = fft(Ea);
@@ -261,7 +287,7 @@ end
 
 %%
 
-% %{
+%{
 fileName = 'displ_second_order.dat';
 fileID = fopen(fileName,'w');
 fprintf(fileID, '# time displacement\n');
@@ -269,7 +295,7 @@ for j = 1:length(ta)
     fprintf(fileID, '%15.10e %15.10e\n', ta(j), X(j));
 end
 fclose(fileID);
-% %}
+%}
 
 %{
 % Output 2nd order spectrum
@@ -335,9 +361,10 @@ hold on;
 plot(ta, dX1, '-b', 'Parent', sub5, 'LineWidth', 1);
 plot(ta, dX2, '-c', 'Parent', sub5, 'LineWidth', 1);
 plot(ta, dX2b, '-g', 'Parent', sub5, 'LineWidth', 1);
+plot(ta, dX1+dX2+dX2b, '-r', 'Parent', sub5, 'LineWidth', 1);
 hold off;
 axis([-inf inf -inf inf]);
-legend({'dX1' 'dX2' 'dX2b'});
+legend({'dX1' 'dX2' 'dX2b' 'sum'});
 
 sub6 = subplot(3,2,6,'Parent',fig1);
 grid on;
@@ -345,5 +372,5 @@ hold on;
 plot(ta, X, '-r', 'Parent', sub6, 'LineWidth', 1);
 plot(ta, X_rct, '.k', 'Parent', sub6, 'LineWidth', 1);
 hold off;
-axis([-inf inf -0.1 0.1]);
+axis([-inf inf -inf inf]);
 legend({'X' 'Xrct'});
