@@ -20,24 +20,18 @@ grav = 9.81;
 zerovalue = 1e-100;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  Definition of the wavemaker shape
-%
-%                       /  free surface
-% ---------|-------------------------------
-%     ^               /
-%     |    |         /
-%   h |             /
-%     |    |       /
-%     v           /          bottom
-% ---------------/======================
-%     ^    |    /
-%     |        /
-%  lh |    |  /
-%     |      /
-%     v    |/
-% ---------o    Location of the hinge
+%  Piston-type wavemaker
+%             X
+%        |<-------->|
+%        .          |   free surface
+% -------|----------|----------------------
+%   ^    .          |
+%   |    |          |
+% h |    .          |
+%   |    |          |
+%   v    .          |     bottom
+% -------|----------|======================
 h = 0.74;
-lh = 1e5;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  Definition of the target wave train at x=0
@@ -112,8 +106,7 @@ end
 
 % Wavemaker velocities at 1st order
 kappa1 = grav*k./w./cosh(k*h);
-Lambda1 = kappa1.*k*(h+lh).*(sinh(2*k*h)+2*k*h) ./ ...
-          (4 * (1 - cosh(k*h) + k*(h+lh).*sinh(k*h)));
+Lambda1 = (kappa1/2) .* (cosh(k*h) + (k*h)./sinh(k*h));
 AdX1 = Lambda1 .* Aa;
 
 dX1 = zeros(size(Ea));
@@ -121,7 +114,7 @@ for l = 1:length(w)
     dX1 = dX1 + real(AdX1(l) * exp(-1i*w(l)*ta));
 end
 
-% Wavemaker displacements at the 1st order
+% Wavemaker displacements at 1st order
 spec_X1 = 1i * AdX1 ./ w;
 
 X1 = zeros(size(dX1));
@@ -134,14 +127,8 @@ AdX2 = zeros(size(AdX1));
 AdX2 = AdX2 + zerovalue;
 for l = 1:length(w)
     if 2*l <= speccut
-        kappa_d = Lambda1(l) * grav*k(l) / (2*(h+lh)*w(l)^2 * cosh(k(l)*h));
-        G = k2w(l)/(k(l)-k2w(l))^2 - k2w(l)/(k(l)+k2w(l))^2 + ...
-            k2w(l)*cosh((k2w(l)+k(l))*h)/(k(l)+k2w(l))^2 + ...
-            k(l)*(h+lh)*sinh((k(l)+k2w(l))*h)/(k(l)+k2w(l)) + ...
-            k(l)*(k(l)-k2w(l))*(h+lh)*sinh((k(l)-k2w(l))*h)/(k(l)-k2w(l))^2 - ...
-            k2w(l)*cosh((k(l)-k2w(l))*h)/(k(l)-k2w(l))^2;
-        AdX2(2*l) = -kappa_d*k2w(l)^2*(h+lh) / ...
-                    (2*(1-cosh(k2w(l)*h)+k2w(l)*(h+lh)*sinh(k2w(l)*h))) * G * Aa(l)^2;
+        AdX2(2*l) = -Lambda1(l) * (grav/2) * k2w(l) / (k2w(l)^2 - k(l)^2) * ...
+                    (k(l) / w(l))^2 * (k2w(l) - k(l)*coth(k2w(l)*h)*tanh(k(l)*h)) * Aa(l)^2;
     end
 end
 
@@ -207,8 +194,7 @@ AdX2bZ = zeros(size(AbZ));
 spec_X2bZ = zeros(size(AbZ));
 for l = 1:length(wb)
     kappa2 = 3*wb(l) / (sinh(kb(l)*h) * (2 + cosh(kb(l)*h)));
-    Lambda2 = kappa2*kb(l)*(h+lh)*(sinh(2*kb(l)*h)+2*kb(l)*h) / ...
-             (4 * (1 - cosh(kb(l)*h) + kb(l)*(h+lh)*sinh(kb(l)*h)));
+    Lambda2 = (kappa2/2) * (cosh(kb(l)*h) + (kb(l)*h) / sinh(kb(l)*h));
     if ~isnan(Lambda2)
         AdX2bZ(l) = Lambda2 * AbZ(l);
         spec_X2bZ(l) = 1i * AdX2bZ(l) / wb(l);
